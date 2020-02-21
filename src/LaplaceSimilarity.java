@@ -7,7 +7,7 @@ import org.apache.lucene.search.similarities.LMSimilarity;
 
 
 public class LaplaceSimilarity extends LMSimilarity {
-    /** The &mu; parameter. */
+    /** The alpha; parameter. as add alpha to each occurance number */
 
     private final float alpha;
 
@@ -27,7 +27,7 @@ public class LaplaceSimilarity extends LMSimilarity {
 
 
 
-    /** Instantiates the similarity with the provided &mu; parameter. */
+    /** Instantiates the similarity with the provided alpha; parameter. */
 
     public LaplaceSimilarity(float alpha) {
 
@@ -43,7 +43,7 @@ public class LaplaceSimilarity extends LMSimilarity {
 
 
 
-    /** Instantiates the similarity with the default &mu; value of 2000. */
+    /** Instantiates the similarity with the default alpha; value of 1. */
 
     public LaplaceSimilarity(CollectionModel collectionModel) {
 
@@ -53,7 +53,7 @@ public class LaplaceSimilarity extends LMSimilarity {
 
 
 
-    /** Instantiates the similarity with the default &mu; value of 2000. */
+    /** Instantiates the similarity with the default alpha; value of 1. */
 
     public LaplaceSimilarity() {
 
@@ -152,7 +152,7 @@ public class LaplaceSimilarity extends LMSimilarity {
 
     }
 
-    /** Returns the &mu; parameter. */
+    /** Returns the alpha; parameter. */
 
     public float getAlpha() {
 

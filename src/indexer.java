@@ -1,6 +1,3 @@
-// slightly modified from IndexFiles in org.apache.lucene.demo
-// By Hao Liu, Siwen Zhu
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

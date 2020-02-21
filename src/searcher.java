@@ -1,11 +1,9 @@
-// slightly modified from SearchFiles in org.apache.lucene.demo
-// By Hao Liu, Siwen Zhu
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
@@ -57,9 +55,20 @@ public class searcher {
             }
         }
 
+        if (index == null) {
+            System.err.println("Usage: " + usage);
+            System.exit(1);
+        }
+
+        Path docDir = Paths.get(index);
+        if (!Files.isReadable(docDir)) {
+            System.out.println("Index directory '" + docDir.toAbsolutePath() + "' does not exist or is not readable, please check the path");
+            System.exit(1);
+        }
+
         // get queries
         ArrayList<String> querylist = new ArrayList<String>();
-        querylist = parser.topicparser(index);
+        querylist = parser.topicparser(queries);
 
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));
         IndexSearcher searcher = new IndexSearcher(reader);

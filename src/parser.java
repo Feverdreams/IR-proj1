@@ -23,7 +23,7 @@ public class parser{
                         temp.append(" ");
                         str = bf.readLine();
                     }
-                    bodies.add(temp.toString());
+                    bodies.add(temp.toString().trim());
                 }
 
             }

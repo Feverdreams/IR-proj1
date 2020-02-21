@@ -1,0 +1,41 @@
+<!DOCTYPE CR93 [
+
+<!--   SGML DESCRIPTIONS         -->
+<!--   +     Required and repeatable element -->
+<!--   ?     Optional element                -->
+<!--   *     Optional and repeatable element -->
+<!--   ,     elements must follow in this order  -->
+<!--   |     "or" connector (pick one element)   -->
+<!--   &     "and" connector (all must occur in any order)   -->
+
+<!-- QUANTITY CR93REF -->
+<!--    NAMELEN 32 -->
+
+<!--       ELEMENT  MIN  CONTENT -->
+<!-- These are doc, docno, text, etc -->
+<!--       ELEMENT     NAME     CONTENT  DEFAULT -->
+<!ELEMENT  DOCID    - -  (#PCDATA)+        >   
+<!ELEMENT  CENTER   - -  (PRE* | #PCDATA)* >   
+<!ELEMENT  PRE      - -  (#PCDATA)+        >   
+<!ELEMENT  TTL      - -  (#PCDATA)+        >   
+<!ELEMENT  H2       - -  (#PCDATA)+        >   
+<!ELEMENT  UL       - -  (CENTER* | PRE* | #PCDATA)+ >   
+<!ELEMENT  TI       - -  (#PCDATA)+        >   
+<!ELEMENT  FLD002   - -  (#PCDATA)+       >   
+<!ELEMENT  FLD001   - -  (#PCDATA)+       >   
+<!ELEMENT  DATE     - -  (#PCDATA)+       >   
+<!ELEMENT  FLD003   - -  (#PCDATA)+       >   
+<!ELEMENT  SO       - -  (TI+ | #PCDATA)+ >   
+<!ELEMENT  TEXT     - -  (H2* | UL* | TTL* | CENTER* | PRE* | SO* | TI* | FLD001* | FLD002* | #PCDATA)+>
+<!ELEMENT  DOCNO    - -  (#PCDATA)+       >
+<!ELEMENT  DOC      - -  (DOCNO & (DOCID* | CENTER* | PRE* | DATE* | FLD003* | TEXT+ | H2* | UL* | TTL* | FLD001* | FLD002*)* )> 
+<!ELEMENT  CR93        O O  (DOC+)>
+
+<!-- This changes the symbols back to what they should be -->
+<!-- Only need ampersand, less than, and more than -->
+<!-- Leave the default system in there -->
+
+<!ENTITY   amp      "&" >
+<!ENTITY   gt       ">" >
+<!ENTITY   lt       "<" >
+]>

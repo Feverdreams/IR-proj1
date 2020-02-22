@@ -14,14 +14,14 @@ public class parser{
             String str;
             while ((str = bf.readLine()) != null) {
                 if (str.contains("<title>")) {
-                    str = str.replace("/", "\\/");
+                    str = str.replace("/", "\\/"); //The analyzer of Lucene seems buggy with / or ?. So remove them.
                     titles.add(str.substring(8).trim());
                 } else if (str.contains("<desc>")) {
                     StringBuilder temp = new StringBuilder();
                     str = bf.readLine();
                     while (str.trim().length() != 0) {
-                        str = str.replace("/", "\\/");
-                        str = str.replace("?", ".");
+                        str = str.replace("/", "\\/");//The analyzer of Lucene seems buggy with / or ?. So remove them.
+                        str = str.replace("?", ".");//The analyzer of Lucene seems buggy with / or ?. So remove them.
                         temp.append(str.trim());
                         temp.append(" ");
                         str = bf.readLine();

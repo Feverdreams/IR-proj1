@@ -176,7 +176,38 @@ public class indexer {
                 }
             }
             else {
-                sb.append(line);
+                int startidx = line.indexOf('>');
+                int lastidx = line.lastIndexOf('<');
+                if (startidx == -1 & lastidx == -1){
+                    sb.append(line.trim());
+                }
+                else{
+                    if (startidx > lastidx){ ;
+                    }
+                    else{
+                        //System.out.print(line);
+                        //System.out.print("\n");
+                        if (startidx == lastidx - 1){
+                            break;
+                        }
+                        line = line.substring(startidx + 1, lastidx - 1);
+                        int tempstart = line.indexOf('>');
+                        if (tempstart != -1){ //In fbis format, there maybe two pairs of <> in one line, check it with this condition.
+                            startidx = tempstart;
+                            lastidx = line.lastIndexOf('<');
+                            if (startidx == lastidx - 1){
+                                break;
+                            }
+                            line = line.substring(startidx + 1, lastidx - 1);
+                        }
+                        //System.out.print(line);
+                        //System.out.print("\n");
+                        sb.append(line);
+
+                    }
+                }
+
+
             }
         }
     }

@@ -45,6 +45,25 @@ public class parser{
         //System.out.print(queries.size());
         return queries;
     }
+    public static ArrayList<String> fileparser(String name) {
+        ArrayList<String> queries = new ArrayList<String>();
+        try {
+            FileReader file = new FileReader(name);
+            BufferedReader bf = new BufferedReader(file);
+            String str;
+            while ((str = bf.readLine()) != null) {
+                queries.add(str);
+            }
+            bf.close();
+            file.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //System.out.print(queries);
+        //System.out.print("\n");
+        //System.out.print(queries.size());
+        return queries;
+    }
     /*
     public static ArrayList<String> dataparser(String dirpath) {
         ArrayList<String> listFileName = new ArrayList<String>();

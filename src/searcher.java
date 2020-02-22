@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.text.DecimalFormat;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -38,6 +37,10 @@ public class searcher {
         String field = "contents";
         String queries = null;
         String method = "BM25"; // BM25 (baseline), LM, RM1, RM3
+        String qdoc = null;
+
+        int SearchSize = 5;
+        int count = 1;
 
         for(int i = 0; i < args.length; ++i) {
             if ("-index".equals(args[i])) {
@@ -51,6 +54,9 @@ public class searcher {
                 ++i;
             } else if (("-method").equals(args[i])) {
                 method = args[i + 1];
+                ++i;
+            }else if ("-queryfile".equals(args[i])){
+                qdoc = args[i + 1];
                 ++i;
             }
         }
@@ -68,7 +74,13 @@ public class searcher {
 
         // get queries
         ArrayList<String> querylist = new ArrayList<String>();
-        querylist = parser.topicparser(queries);
+        if (qdoc == null) {
+            querylist = parser.topicparser(queries);
+        }
+        else{
+            //read queries from file
+            querylist = parser.fileparser(qdoc);
+        }
 
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));
         IndexSearcher searcher = new IndexSearcher(reader);
@@ -88,19 +100,55 @@ public class searcher {
 
         Analyzer analyzer = new StandardAnalyzer();
         QueryParser parser = new QueryParser(field, analyzer);
+        File temFile = new File("result.txt");
+        if (temFile.exists()) { //If output file already exists, del it
+            temFile.delete();
+        }
         for(int i = 351; i < 401; i++) {
 
             Query query = parser.parse(querylist.get(i-351));
 
-            TopDocs results = searcher.search(query, 5); // only for test
+            TopDocs results = searcher.search(query, SearchSize); // 5 only for test
             ScoreDoc[] hits = results.scoreDocs;
             int Hits = Math.toIntExact(results.totalHits.value);
             System.out.println("\n" + Hits + " total matching documents");
-            for (ScoreDoc hit : hits) {
-                Document document = searcher.doc(hit.doc);
-                System.out.println("  DocID:" + document.get("docId"));
-                System.out.println("  Score:" + hit.score);
-                System.out.println("  -----------------------------------");
+            try {
+                FileOutputStream out = new FileOutputStream("result.txt", true); //append to the end of output file.
+                OutputStreamWriter outWriter = new OutputStreamWriter(out, "UTF-8");
+                BufferedWriter bufWrite = new BufferedWriter(outWriter);
+
+                for (ScoreDoc hit : hits) {
+                    Document document = searcher.doc(hit.doc);
+                    StringBuilder sb = new StringBuilder();
+                    String res;
+                    sb.append(i);
+                    sb.append(" \t ");
+                    sb.append("Q0");
+                    sb.append(" \t ");
+                    sb.append(document.get("docId"));
+                    sb.append(" \t ");
+                    sb.append(count);
+                    sb.append(" \t ");
+                    DecimalFormat df = new DecimalFormat(".000");
+                    sb.append(df.format(hit.score));
+                    sb.append(" \t ");
+                    sb.append("yhao32");
+                    sb.append("\n");
+                    res = sb.toString();
+                    System.out.print(res);
+                    //write res to file
+                    bufWrite.write(res);
+                    count++;
+                    if (count > SearchSize) {
+                        count = 1;
+                    }
+                }
+                bufWrite.close();
+                outWriter.close();
+                out.close();
+            }catch (Exception e){
+                e.printStackTrace();
+                System.out.println("Failed in writing results.txt");
             }
         }
         reader.close();

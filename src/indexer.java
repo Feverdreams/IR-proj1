@@ -126,7 +126,13 @@ public class indexer {
         } else {
             String filename;
             filename = path.getFileName().toString();
-            System.out.print(filename);
+            for(String pass:IGNORE_DOCS){
+                if (filename.equals(pass)){
+                    System.out.print(filename + " passed");
+                    System.out.print("\n");
+                    return;
+                }
+            }
             indexDoc(writer, path, Files.getLastModifiedTime(path).toMillis(), method);
         }
     }

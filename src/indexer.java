@@ -34,7 +34,6 @@ import org.apache.lucene.search.similarities.*;
 public class indexer {
     private indexer() {
     }
-    //Need to really ignore these files.
     private final static String[] IGNORE_DOCS = {"readchg.txt", "readmefb.txt",  //explain docs of fbis
             "readfrcg", "readmeft",  //explain docs of ft
             "readchg.txt", "readmela.txt" //explain docs of latimes
@@ -213,7 +212,15 @@ public class indexer {
     }
 
     public static void indexDoc(IndexWriter writer, Path file, long lastModified, String method) throws IOException {
-
+        String filename;
+        filename = file.getFileName().toString();
+        for(String pass:IGNORE_DOCS){
+            if (filename.equals(pass)){
+                System.out.print(filename + " passed");
+                System.out.print("\n");
+                return;
+            }
+        }
         if (method.equals("BM25")) {
             nonfieldParser(writer, file);
         }

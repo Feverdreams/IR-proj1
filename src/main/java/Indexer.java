@@ -31,8 +31,8 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.search.similarities.*;
 
-public class indexer {
-    private indexer() {
+public class Indexer {
+    private Indexer() {
     }
     private final static String[] IGNORE_DOCS = {"readchg.txt", "readmefb.txt",  //explain docs of fbis
             "readfrcg", "readmeft",  //explain docs of ft

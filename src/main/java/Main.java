@@ -20,6 +20,8 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.similarities.BM25Similarity;
+import org.apache.lucene.search.similarities.LMDirichletSimilarity;
+import org.apache.lucene.search.similarities.LMJelinekMercerSimilarity;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -73,7 +75,9 @@ public class Main
     {
         Map<String, Similarity> similarityMap = new HashMap<>();
         similarityMap.put("BM25".toLowerCase(), new BM25Similarity());
-        similarityMap.put("LMLaplace".toLowerCase(), new LaplaceSimilarity());
+        similarityMap.put("LMLaplace".toLowerCase(), new LMDirichletSimilarity());
+        similarityMap.put("LMDirichlet".toLowerCase(), new LMDirichletSimilarity());
+        similarityMap.put("LMJelinekMercer".toLowerCase(), new LMJelinekMercerSimilarity(0.5f));
         Similarity similarity = similarityMap.get(method.toLowerCase());
 
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));

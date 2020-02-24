@@ -103,3 +103,6 @@ hs_err_pid*
 *.iml
 index*
 target*
+.idea/.name
+Data/output.txt
+src/main/resources/

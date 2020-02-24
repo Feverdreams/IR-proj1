@@ -41,7 +41,7 @@ public class Main
         {
             System.err.printf("Wrong parameters: %s\nExpecting BM25 IndexPath QueriesPath Output\n", Arrays.toString(args));
         }
-        String method = args[0].toLowerCase();
+        String method = args[0];
         String indexPath = args[1];
         String queryPath = args[2];
         String outputPath = args[3];
@@ -52,7 +52,7 @@ public class Main
     private static void index(String indexPath)
     {
         File indexFile = new File(indexPath);
-        boolean create = true;
+        boolean create = false;
         if (!indexFile.exists())
         {
             indexFile.mkdirs();
@@ -74,51 +74,38 @@ public class Main
         Map<String, Similarity> similarityMap = new HashMap<>();
         similarityMap.put("BM25".toLowerCase(), new BM25Similarity());
         similarityMap.put("LMLaplace".toLowerCase(), new LaplaceSimilarity());
+        Similarity similarity = similarityMap.get(method.toLowerCase());
 
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));
         IndexSearcher searcher = new IndexSearcher(reader);
+        if (similarity != null)
+        {
+            System.err.println("Use similarity " + method);
+            searcher.setSimilarity(similarity);
+        }
         Analyzer analyzer = new StandardAnalyzer();
-
-        BufferedReader in = null;
-        if (queries != null)
-        {
-            in = Files.newBufferedReader(Paths.get(queries), StandardCharsets.UTF_8);
-        }
-        else
-        {
-            in = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-        }
         String field = "contents";
         QueryParser parser = new QueryParser(field, analyzer);
-        String queryString = null;
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath), StandardCharsets.UTF_8));
-        while (true)
+
+        int topic_id = 1;
+        for (Topic topic : Utils.readTopic(queries))
         {
-            if (queries == null)
-            {                        // prompt the user
-                System.err.println("Enter query: ");
-            }
-
-            String line = in.readLine();
-
-            if (line == null)
-            {
-                break;
-            }
-
-            line = line.trim();
-            if (line.length() == 0)
-            {
-                break;
-            }
-
+            String line = topic.getQuery();
             Query query = parser.parse(line);
             System.err.println("Searching for: " + query.toString(field));
             TopDocs topDocs = searcher.search(query, 1000);
-            for (ScoreDoc scoreDoc : topDocs.scoreDocs)
+
+            for (int i = 0; i < topDocs.scoreDocs.length; i++)
             {
-                bw.write(String.format(""));
+                ScoreDoc scoreDoc = topDocs.scoreDocs[i];
+                Document doc = searcher.doc(scoreDoc.doc);
+                String contents = doc.getField("contents").stringValue();
+                String docno = doc.getField("docno").stringValue();
+                int rank = i + 1;
+                bw.write(String.format("%d\tQ0\t%s\t%d\t%.1f\thhe43\n", topic_id, docno, rank, scoreDoc.score));
             }
+            topic_id += 1;
         }
         bw.close();
         reader.close();

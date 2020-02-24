@@ -9,8 +9,8 @@
  * </copyright>
  */
 
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,4 +52,41 @@ public class Utils
         return docs;
     }
 
+    public static List<Topic> readTopic(String path) throws IOException
+    {
+        String line;
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(path), StandardCharsets.UTF_8));
+        Topic topic = null;
+        List<Topic> topicList = new LinkedList<>();
+        while ((line = reader.readLine()) != null)
+        {
+            if (line.equals("<top>"))
+            {
+                topic = new Topic();
+            }
+            else if (line.equals("</top>"))
+            {
+                topicList.add(topic);
+            }
+            else  if (line.startsWith("<title>"))
+            {
+                topic.title = line.substring("<title> ".length());
+            }
+            else if (line.startsWith("<desc> Description:"))
+            {
+                topic.desc = "";
+                while ((line = reader.readLine()) != null && line.trim().length() > 0)
+                {
+                    topic.desc += line;
+                }
+            }
+        }
+        reader.close();
+        return topicList;
+    }
+
+    public static void main(String[] args) throws IOException
+    {
+        readTopic("Data/topics.351-400");
+    }
 }

@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -40,9 +37,10 @@ public class indexer {
     };
 
     public static void main(String[] args) {
-        String usage = "java org.apache.lucene.demo.IndexFiles [-index INDEX_PATH] [-docs DOCS_PATH] [-update] [-method METHOD]\n\nThis indexes the documents in DOCS_PATH, creating a Lucene indexin INDEX_PATH that can be searched with SearchFiles";
+        String usage = "java indexer.[-index INDEX_PATH] [-docs DOCS_PATH] [-update] [-method METHOD] [-creatq path]\n\nThis indexes the documents in DOCS_PATH, creating a Lucene indexin INDEX_PATH that can be searched with SearchFiles";
         String indexPath = "index";
         String docsPath = null;
+        String creatq = null;
         boolean create = true;
         String method = "BM25"; // scoring parameter: BM25, LM with Laplace smoothing, RM1, RM3
 
@@ -58,12 +56,20 @@ public class indexer {
             } else if (("-method").equals(args[i])) {
                 method = args[i + 1];
                 ++i;
+            } else if("-creatq".equals(args[i])){
+                creatq = args[i + 1];
+                ++i;
             }
+
         }
 
         if (docsPath == null) {
             System.err.println("Usage: " + usage);
             System.exit(1);
+        }
+        if (creatq != null){
+            parser.querytodoc(creatq);
+            System.out.println("quries.txt created");
         }
 
         Path docDir = Paths.get(docsPath);
@@ -73,7 +79,6 @@ public class indexer {
         }
 
         Date start = new Date();
-
         try {
             System.out.println("Indexing to directory '" + indexPath + "' using method "+ method);
             Directory dir = FSDirectory.open(Paths.get(indexPath));
@@ -211,8 +216,6 @@ public class indexer {
 
                     }
                 }
-
-
             }
         }
     }

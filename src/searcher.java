@@ -27,7 +27,7 @@ public class searcher {
     }
 
     public static void main(String[] args) throws Exception {
-        String usage = "Usage:\tjava org.apache.lucene.demo.SearchFiles [-index dir] [-field f] [-repeat n] [-queries file] [-query string] [-raw] [-paging hitsPerPage]\n\nSee http://lucene.apache.org/core/4_1_0/demo/ for details.";
+        String usage = "Usage:\tjava searcher [-index dir] [-field f] [-repeat n] [-queries file] [-query string] [-raw] [-paging hitsPerPage]\n\nSee http://lucene.apache.org/core/4_1_0/demo/ for details.";
         if (args.length > 0 && ("-h".equals(args[0]) || "-help".equals(args[0]))) {
             System.out.println(usage);
             System.exit(0);
@@ -76,6 +76,7 @@ public class searcher {
         ArrayList<String> querylist = new ArrayList<String>();
         if (qdoc == null) {
             querylist = parser.topicparser(queries);
+
         }
         else{
             //read queries from file
@@ -104,6 +105,7 @@ public class searcher {
         if (temFile.exists()) { //If output file already exists, del it
             temFile.delete();
         }
+
         for(int i = 351; i < 401; i++) {
 
             Query query = parser.parse(querylist.get(i-351));

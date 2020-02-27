@@ -1,6 +1,8 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.search.ScoreDoc;
+
+import java.io.*;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class parser{
@@ -64,8 +66,34 @@ public class parser{
         //System.out.print(queries.size());
         return queries;
     }
-    /*
-    public static ArrayList<String> dataparser(String dirpath) {
+    public static void querytodoc(String name) {
+        ArrayList<String> queries = new ArrayList<String>();
+        queries = topicparser(name);
+        try {
+            FileOutputStream out = new FileOutputStream("queries.txt", true); //append to the end of output file.
+            OutputStreamWriter outWriter = new OutputStreamWriter(out, "UTF-8");
+            BufferedWriter bufWrite = new BufferedWriter(outWriter);
+
+            for (String query : queries) {
+                StringBuilder sb = new StringBuilder();
+                String res;
+                sb.append(query);
+                sb.append("\n");
+                res = sb.toString();
+                //System.out.print(res);
+                //write res to file
+                bufWrite.write(res);
+            }
+            bufWrite.close();
+            outWriter.close();
+            out.close();
+        }catch (Exception e){
+            e.printStackTrace();
+            System.out.println("Failed in writing queries.txt");
+        }
+    }
+   /*
+   public static ArrayList<String> dataparser(String dirpath) {
         ArrayList<String> listFileName = new ArrayList<String>();
         File file = new File(dirpath);
         File [] files = file.listFiles();

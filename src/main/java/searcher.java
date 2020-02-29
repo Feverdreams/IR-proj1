@@ -106,9 +106,11 @@ public class searcher {
             temFile.delete();
         }
 
-        for(int i = 351; i < 401; i++) {
+        int querynum = querylist.toArray().length;
 
-            Query query = parser.parse(querylist.get(i-351));
+        for(int i = 9; i < querynum; i++) {
+
+            Query query = parser.parse(querylist.get(i));
 
             TopDocs results = searcher.search(query, SearchSize); // 5 only for test
             ScoreDoc[] hits = results.scoreDocs;

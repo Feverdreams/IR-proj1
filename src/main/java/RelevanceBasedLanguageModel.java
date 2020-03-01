@@ -11,7 +11,7 @@ import java.util.*;
 public class RelevanceBasedLanguageModel
 {
     HashMap<Integer, BagOfWords> R;
-    HashMap<String, TermFrequencies> terms_in_R;
+    HashMap<String, TermFrequency> terms_in_R;
     HashMap<Integer, Double> P_q_given_D_R;
     int num_fb_docs = 20;
     double alpha = 0.6f;
@@ -34,20 +34,19 @@ public class RelevanceBasedLanguageModel
             BagOfWords D = BagOfWords.create(id, indexReader);
             R.put(id, D);
 
-            for (Map.Entry<String, TermFrequencies> entrySet : D.termFrequencies.entrySet())
+            for (Map.Entry<String, TermFrequency> entrySet : D.termFrequencies.entrySet())
             {
                 String term = entrySet.getKey();
-                TermFrequencies freq = entrySet.getValue();
-                TermFrequencies t_in_R = terms_in_R.get(term);
+                TermFrequency freq = entrySet.getValue();
+                TermFrequency t_in_R = terms_in_R.get(term);
                 if (t_in_R != null)
                 {
                     freq.tf += t_in_R.tf;
-                    freq.df += t_in_R.df;
                     terms_in_R.put(term, freq);
                 }
                 else
                 {
-                    terms_in_R.put(term, new TermFrequencies(term, freq.tf, freq.df));
+                    terms_in_R.put(term, new TermFrequency(term, freq.tf));
                 }
             }
         }
@@ -68,19 +67,19 @@ public class RelevanceBasedLanguageModel
     public double MLE(String q, BagOfWords d)
     {
 
-        TermFrequencies D = d.termFrequencies.get(q);
-        TermFrequencies R = terms_in_R.get(q);
+        TermFrequency D = d.termFrequencies.get(q);
+        TermFrequency R = terms_in_R.get(q);
         return MLE(R, D, d);
     }
 
-    public double MLE(TermFrequencies R, TermFrequencies D, BagOfWords d)
+    public double MLE(TermFrequency R, TermFrequency D, BagOfWords d)
     {
         if (D == null)
             return 1 / (double) d.totalTermFrequency;
         return D.tf / (double) d.totalTermFrequency;
     }
 
-    public double MLE_rerank(TermFrequencies R, TermFrequencies D, BagOfWords d)
+    public double MLE_rerank(TermFrequency R, TermFrequency D, BagOfWords d)
     {
         // A2: doesn't work for reranking
         if (R == null)
@@ -91,10 +90,10 @@ public class RelevanceBasedLanguageModel
     public HashMap<String, Pair> RM1()
     {
         List<Pair> P_t_given_q_List = new ArrayList<>(terms_in_R.size());
-        for (Map.Entry<String, TermFrequencies> termF : terms_in_R.entrySet())
+        for (Map.Entry<String, TermFrequency> termF : terms_in_R.entrySet())
         {
             String t = termF.getKey();
-            TermFrequencies f = termF.getValue();
+            TermFrequency f = termF.getValue();
             double p = 0;
             for (int D : R.keySet()) // sum over each D in D_R
             {

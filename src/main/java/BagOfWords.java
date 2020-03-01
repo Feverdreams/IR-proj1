@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 public class BagOfWords
 {
-    HashMap<String, TermFrequencies> termFrequencies;
+    HashMap<String, TermFrequency> termFrequencies;
     int totalTermFrequency;
 
     BagOfWords()
@@ -28,7 +28,7 @@ public class BagOfWords
             String term = new String(byteRef.bytes, byteRef.offset, byteRef.length);
             long termFreq = iterator.totalTermFreq();
             totalTermFrequency += termFreq;
-            dv.termFrequencies.put(term, new TermFrequencies(term, termFreq, 1));
+            dv.termFrequencies.put(term, new TermFrequency(term, termFreq));
         }
         dv.totalTermFrequency = totalTermFrequency;
 

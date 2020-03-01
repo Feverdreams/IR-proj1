@@ -101,10 +101,3 @@ hs_err_pid*
 .idea/modules.xml
 .idea/vcs.xml
 *.iml
-index*
-target*
-.idea/.name
-Data/output.txt
-src/main/resources/
-.idea/deployment.xml
-Data/bm25.score.txt

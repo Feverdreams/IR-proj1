@@ -117,7 +117,7 @@ public class RelevanceBasedLanguageModel
         return P_t_given_q;
     }
 
-    public HashMap<String, Pair> RM3(String[] analyzedQuery)
+    public HashMap<String, Pair> RM3(String[] q)
     {
         HashMap<String, Pair> P_t_given_q = RM1();
 
@@ -142,19 +142,19 @@ public class RelevanceBasedLanguageModel
             norm += value.p;
         }
 
-        for (String q : analyzedQuery)
+        for (String t : q)
         {
-            Pair lambdaRM1 = P_t_given_q.get(q);
-            double lambdaMLE = (1.0 - lambda) * P_q_given_Q(analyzedQuery, q);
+            Pair lambdaRM1 = P_t_given_q.get(t);
+            double lambdaMLE = (1.0 - lambda) * P_MLE_t_given_q(q, t);
             if (lambdaRM1 != null)
             {
                 lambdaRM1.p += lambdaMLE;
                 norm += lambdaMLE;
-                P_t_given_q.put(q, lambdaRM1);
+                P_t_given_q.put(t, lambdaRM1);
             }
             else
             {
-                P_t_given_q.put(q, new Pair(q, lambdaMLE));
+                P_t_given_q.put(t, new Pair(t, lambdaMLE));
             }
         }
 
@@ -168,17 +168,17 @@ public class RelevanceBasedLanguageModel
     }
 
 
-    public double P_q_given_Q(String[] Q, String q)
+    public double P_MLE_t_given_q(String[] q, String t)
     {
         int count = 0;
-        for (String each : Q)
+        for (String each : q)
         {
-            if (q.equals(each))
+            if (t.equals(each))
             {
                 count++;
             }
         }
-        return count / (double) Q.length;
+        return count / (double) q.length;
     }
 
     public void reRank(HashMap<String, Pair> P_t_given_q, TopDocs topDocs, IndexReader indexReader, String[] analyzedQuery) throws IOException

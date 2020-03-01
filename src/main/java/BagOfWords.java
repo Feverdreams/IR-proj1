@@ -28,16 +28,10 @@ public class BagOfWords
             String term = new String(byteRef.bytes, byteRef.offset, byteRef.length);
             long termFreq = iterator.totalTermFreq();
             totalTermFrequency += termFreq;
-            dv.termFrequencies.put(term, new TermFrequencies(term, termFreq, 1, getIdf(term, indexReader, fieldName)));
+            dv.termFrequencies.put(term, new TermFrequencies(term, termFreq, 1));
         }
         dv.totalTermFrequency = totalTermFrequency;
 
         return dv;
-    }
-
-    private static double getIdf(String term, IndexReader indexReader, String fieldName) throws IOException
-    {
-        Term termInstance = new Term(fieldName, term);
-        return Math.log((double) (indexReader.maxDoc()) / (indexReader.docFreq(termInstance) + 1.));
     }
 }

@@ -90,54 +90,53 @@ public class RelevanceBasedLanguageModel
 
     public HashMap<String, Pair> RM1()
     {
-        List<Pair> P_t_given_R_List = new ArrayList<>(terms_in_R.size());
+        List<Pair> P_t_given_q_List = new ArrayList<>(terms_in_R.size());
         for (Map.Entry<String, TermFrequencies> termF : terms_in_R.entrySet())
         {
             String t = termF.getKey();
             TermFrequencies f = termF.getValue();
             double p = 0;
-            for (int D : R.keySet())
+            for (int D : R.keySet()) // sum over each D in D_R
             {
                 p += Math.log(MLE(f, R.get(D).termFrequencies.get(t), R.get(D))) + P_q_given_D_R.get(D);
             }
-            P_t_given_R_List.add(new Pair(t, p));
+            P_t_given_q_List.add(new Pair(t, p));
         }
-        HashMap<String, Pair> P_t_given_R = sortMap(P_t_given_R_List);
-        return P_t_given_R;
+        HashMap<String, Pair> P_t_given_q = sortMap(P_t_given_q_List);
+        return P_t_given_q;
     }
 
-    private HashMap<String, Pair> sortMap(List<Pair> p_t_given_R_List)
+    private HashMap<String, Pair> sortMap(List<Pair> P_t_given_q_List)
     {
-        Collections.sort(p_t_given_R_List, (t1, t2) -> Double.compare(t2.p, t1.p));
-        HashMap<String, Pair> P_t_given_R = new LinkedHashMap<>();
-        for (Pair singleTerm : p_t_given_R_List)
+        Collections.sort(P_t_given_q_List, (t1, t2) -> Double.compare(t2.p, t1.p));
+        HashMap<String, Pair> P_t_given_q = new LinkedHashMap<>();
+        for (Pair singleTerm : P_t_given_q_List)
         {
-            P_t_given_R.put(singleTerm.w, new Pair(singleTerm.w, singleTerm.p));
+            P_t_given_q.put(singleTerm.w, new Pair(singleTerm.w, singleTerm.p));
         }
-        return P_t_given_R;
+        return P_t_given_q;
     }
 
     public HashMap<String, Pair> RM3(String[] analyzedQuery)
     {
-        HashMap<String, Pair> P_t_given_R = RM1();
+        HashMap<String, Pair> P_t_given_q = RM1();
 
-        List<Pair> listP_t_given_R = new ArrayList<>(P_t_given_R.values());
-//        listP_t_given_R = listP_t_given_R.subList(0, num_fb_terms);
-        P_t_given_R = new LinkedHashMap<>();
+        List<Pair> listP_t_given_q = new ArrayList<>(P_t_given_q.values());
+//        listP_t_given_q = listP_t_given_q.subList(0, num_fb_terms);
+        P_t_given_q = new LinkedHashMap<>();
         double norm = 0;
-        for (Pair each : listP_t_given_R)
+        for (Pair each : listP_t_given_q)
         {
-            P_t_given_R.put(each.w, new Pair(each.w, each.p));
+            P_t_given_q.put(each.w, new Pair(each.w, each.p));
             norm += Math.exp(each.p);
         }
-        for (Pair wp : P_t_given_R.values())
+        for (Pair wp : P_t_given_q.values())
         {
             wp.p = Math.exp(wp.p) / norm;
         }
 
-
         norm = 0;
-        for (Pair value : P_t_given_R.values())
+        for (Pair value : P_t_given_q.values())
         {
             value.p = value.p * lambda;
             norm += value.p;
@@ -145,27 +144,27 @@ public class RelevanceBasedLanguageModel
 
         for (String q : analyzedQuery)
         {
-            Pair lambdaRM1 = P_t_given_R.get(q);
+            Pair lambdaRM1 = P_t_given_q.get(q);
             double lambdaMLE = (1.0 - lambda) * P_q_given_Q(analyzedQuery, q);
             if (lambdaRM1 != null)
             {
                 lambdaRM1.p += lambdaMLE;
                 norm += lambdaMLE;
-                P_t_given_R.put(q, lambdaRM1);
+                P_t_given_q.put(q, lambdaRM1);
             }
             else
             {
-                P_t_given_R.put(q, new Pair(q, lambdaMLE));
+                P_t_given_q.put(q, new Pair(q, lambdaMLE));
             }
         }
 
-        for (Map.Entry<String, Pair> entrySet : P_t_given_R.entrySet())
+        for (Map.Entry<String, Pair> entrySet : P_t_given_q.entrySet())
         {
             Pair wp = entrySet.getValue();
             wp.p /= norm;
         }
-        P_t_given_R = sortMap(new ArrayList<>(P_t_given_R.values()));
-        return P_t_given_R;
+        P_t_given_q = sortMap(new ArrayList<>(P_t_given_q.values()));
+        return P_t_given_q;
     }
 
 
@@ -182,7 +181,7 @@ public class RelevanceBasedLanguageModel
         return count / (double) Q.length;
     }
 
-    public void reRank(HashMap<String, Pair> P_t_given_R, TopDocs topDocs, IndexReader indexReader, String[] analyzedQuery) throws IOException
+    public void reRank(HashMap<String, Pair> P_t_given_q, TopDocs topDocs, IndexReader indexReader, String[] analyzedQuery) throws IOException
     {
         List<String> expandedQuery = new LinkedList<>();
         for (String q : analyzedQuery)
@@ -190,7 +189,7 @@ public class RelevanceBasedLanguageModel
             expandedQuery.add(q);
         }
         int limit = 0;
-        for (String t : P_t_given_R.keySet())
+        for (String t : P_t_given_q.keySet())
         {
             if (limit == num_fb_terms)
             {

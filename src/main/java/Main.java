@@ -1,16 +1,5 @@
-/*
- * <author>Han He</author>
- * <email>me@hankcs.com</email>
- * <create-date>2020-02-23 6:20 PM</create-date>
- *
- * <copyright file="Main.java">
- * Copyright (c) 2020, Han He. All Rights Reserved, http://www.hankcs.com/
- * See LICENSE file in the project root for full license information.
- * </copyright>
- */
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -32,26 +21,29 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
-/**
- * @author hankcs
- */
 public class Main
 {
     public static void main(String[] args) throws IOException, ParseException
     {
-        if (args.length != 4)
+        if (args.length < 4)
         {
-            System.err.printf("Wrong parameters: %s\nExpecting BM25 IndexPath QueriesPath Output\n", Arrays.toString(args));
+            System.err.printf("Wrong parameters: %s\nExpecting BM25 IndexPath QueriesPath Output Docpath(optional to build index)\n", Arrays.toString(args));
+            System.exit(1);
         }
         String method = args[0];
         String indexPath = args[1];
         String queryPath = args[2];
         String outputPath = args[3];
-        index(indexPath);
+        String docpath = "Data";
+        if (args.length == 5)
+        {
+            docpath = args[4];
+        }
+        index(indexPath, docpath);
         search(method, queryPath, indexPath, outputPath);
     }
 
-    private static void index(String indexPath)
+    private static void index(String indexPath, String docPath)
     {
         File indexFile = new File(indexPath);
         boolean create = false;
@@ -66,16 +58,19 @@ public class Main
         }
         if (create)
         {
-            System.err.printf("%s not exists, assume documents are in Data and we are indexing it...\n", indexPath);
-            createOrUpdateIndex("Data", indexPath, create);
+            System.err.printf("%s not exists, assume documents are in %s and we are indexing it...\n", indexPath, docPath);
+            createOrUpdateIndex(docPath, indexPath, create);
         }
     }
 
     static void search(String method, String queries, String index, String outputPath) throws IOException, ParseException
     {
+        method = method.toLowerCase();
         Map<String, Similarity> similarityMap = new HashMap<>();
         similarityMap.put("BM25".toLowerCase(), new BM25Similarity());
         similarityMap.put("LMLaplace".toLowerCase(), new LMDirichletSimilarity());
+        similarityMap.put("RM1".toLowerCase(), new LMDirichletSimilarity());
+        similarityMap.put("RM3".toLowerCase(), new LMDirichletSimilarity());
         similarityMap.put("LMDirichlet".toLowerCase(), new LMDirichletSimilarity());
         similarityMap.put("LMJelinekMercer".toLowerCase(), new LMJelinekMercerSimilarity(0.5f));
         Similarity similarity = similarityMap.get(method.toLowerCase());
@@ -84,21 +79,36 @@ public class Main
         IndexSearcher searcher = new IndexSearcher(reader);
         if (similarity != null)
         {
-            System.err.println("Use similarity " + method);
+            System.err.println("Use similarity " + similarity.toString());
             searcher.setSimilarity(similarity);
         }
-        Analyzer analyzer = new StandardAnalyzer();
+        Analyzer analyzer = new AnalyzerStemmedStopword();
         String field = "contents";
         QueryParser parser = new QueryParser(field, analyzer);
         BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputPath), StandardCharsets.UTF_8));
 
-        int topic_id = 1;
-        for (Topic topic : Utils.readTopic(queries))
+        List<Topic> topics = Utils.readTopic(queries);
+        int tid = 0;
+        for (Topic topic : topics)
         {
+            ++tid;
             String line = topic.getQuery();
             Query query = parser.parse(line);
-            System.err.println("Searching for: " + query.toString(field));
+            System.err.printf("%d / %d Searching for: %s\n", tid, topics.size(), query.toString(field));
             TopDocs topDocs = searcher.search(query, 1000);
+            if (method.startsWith("rm"))
+            {
+                String[] analyzedQuery = query.toString(field).split("\\s");
+                RelevanceBasedLanguageModel rlm = new RelevanceBasedLanguageModel(reader, topDocs, analyzedQuery);
+                if ("rm1".equals(method))
+                {
+                    rlm.reRank(rlm.RM1(), topDocs, reader, analyzedQuery);
+                }
+                else
+                {
+                    rlm.reRank(rlm.RM3(analyzedQuery), topDocs, reader, analyzedQuery);
+                }
+            }
 
             for (int i = 0; i < topDocs.scoreDocs.length; i++)
             {
@@ -107,9 +117,8 @@ public class Main
                 String contents = doc.getField("contents").stringValue();
                 String docno = doc.getField("docno").stringValue();
                 int rank = i + 1;
-                bw.write(String.format("%d\tQ0\t%s\t%d\t%.1f\thhe43\n", topic_id, docno, rank, scoreDoc.score));
+                bw.write(String.format("%s\tQ0\t%s\t%d\t%.1f\thhe43\n", topic.number, docno, rank, scoreDoc.score));
             }
-            topic_id += 1;
         }
         bw.close();
         reader.close();
@@ -130,7 +139,7 @@ public class Main
             System.out.println("Indexing to directory '" + indexPath + "'...");
 
             Directory dir = FSDirectory.open(Paths.get(indexPath));
-            Analyzer analyzer = new StandardAnalyzer();
+            Analyzer analyzer = new AnalyzerStemmedStopword();
             IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 
             if (create)
@@ -265,7 +274,13 @@ public class Main
                 // so that the text of the file is tokenized and indexed, but not stored.
                 // Note that FileReader expects the file to be in UTF-8 encoding.
                 // If that's not the case searching for special characters will fail.
-                doc.add(new TextField("contents", d.content, Field.Store.YES));
+                FieldType type = new FieldType();
+                type.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+                type.setStored(true);
+                type.setStoreTermVectors(true);
+
+//                doc.add(new TextField("contents", d.content, Field.Store.YES));
+                doc.add(new Field("contents", d.content, type));
 
                 if (writer.getConfig().getOpenMode() == IndexWriterConfig.OpenMode.CREATE)
                 {
